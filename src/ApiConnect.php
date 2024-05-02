@@ -18,7 +18,7 @@ class ApiConnect extends Controller
     protected $apiKey = '';
 
     // Used to manage cURL requests
-    private $curl = null;
+    protected $curl = null;
 
     // Capture any messages to pass back from page load
     private $loadMessages = '';
@@ -81,15 +81,30 @@ class ApiConnect extends Controller
     /**
      * Run a basic API GET request, given a URL.
      *
+     * @param  array  $headIn
+     * @return array
+     */
+    protected function get_default_header($headIn = [])
+    {
+        $httpHeader = [
+            'Content-Type:application/json'
+        ];
+        if (sizeof($headIn) > 0) {
+            $httpHeader = $headIn;
+        }
+        return $httpHeader;
+    }
+
+    /**
+     * Run a basic API GET request, given a URL.
+     *
      * @param  string  $url
      * @return array
      */
     public function basic_api_get_request($url = '')
     {
-        $ret = [];
         curl_setopt($this->curl, CURLOPT_URL, $url);
-        $httpHeader = [ ];
-        curl_setopt($this->curl, CURLOPT_HTTPHEADER, $httpHeader);
+        curl_setopt($this->curl, CURLOPT_HTTPHEADER, []);
         $ret = json_decode(curl_exec($this->curl), true);
         $this->curl_reset();
         return $ret;
@@ -102,18 +117,44 @@ class ApiConnect extends Controller
      * @param  array  $data
      * @return array
      */
-    public function basic_api_post_request($url = '', $data = [])
+    public function basic_api_post_request_core($url = '', $data = [], $headIn = [])
     {
-        $ret = [];
-        $httpHeader = [
-            'Content-Type:application/json'
-        ];
+        $httpHeader = $this->get_default_header($headIn);
         curl_setopt($this->curl, CURLOPT_URL, $url);
         curl_setopt($this->curl, CURLOPT_HTTPHEADER, $httpHeader);
         curl_setopt($this->curl, CURLOPT_POSTFIELDS, $data);
+    }
+
+    /**
+     * Run a basic API GET request, given a URL.
+     *
+     * @param  string  $url
+     * @param  array  $data
+     * @return array
+     */
+    public function basic_api_post_request($url = '', $data = [], $headIn = [])
+    {
+        $ret = [];
+        $this->basic_api_post_request_core($url, $data, $headIn);
         $ret = json_decode(curl_exec($this->curl), true);
         $this->curl_reset();
         return $ret;
+    }
+
+    /**
+     * Run a basic API GET request, given a URL.
+     *
+     * @param  string  $url
+     * @param  array  $data
+     * @return array
+     */
+    public function basic_api_post_request_err($url = '', $data = [], $headIn = [])
+    {
+        $this->basic_api_post_request_core($url, $data, $headIn);
+        $response = curl_exec($this->curl);
+        $error = curl_error($this->curl);
+        $this->curl_reset();
+        return [ json_decode($response, true), $error ];
     }
 
     /**
