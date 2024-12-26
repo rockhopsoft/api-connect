@@ -55,6 +55,7 @@ class ApiConnect extends Controller
         } else {
             $this->load_key_from_env();
         }
+        $this->load_more_from_env();
     }
 
     /**
@@ -66,6 +67,13 @@ class ApiConnect extends Controller
     {
         $this->set_key(env('API_KEY_CONNECT', ''));
     }
+
+    /**
+     * Pull more info from the software's installation environment.
+     *
+     * @return void
+     */
+    protected function load_more_from_env() { }
 
     /**
      * Set key for the Census API.
